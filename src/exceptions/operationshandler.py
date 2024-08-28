@@ -57,7 +57,8 @@ folder_name = "logs"
 log_files_to_create = [
     "system.log",
     "userops.log",
-    "llmresponse.log"
+    "llmresponse.log",
+    "evals.log"
 ]
 
 for file in log_files_to_create:
@@ -67,4 +68,4 @@ for file in log_files_to_create:
 system_logger = setup_logger(__name__, f'{current_working_directory}/logs/system.log') # system logger
 userops_logger = setup_logger("userLogger", f'{current_working_directory}/logs/userops.log') # user logger
 llmresponse_logger = setup_logger("LLMResponseLogger", f'{current_working_directory}/logs/llmresponse.log') # llm response logger
-evaluation_logger = setup_logger("ModelEvaluationLogger", )
+evaluation_logger = setup_logger("ModelEvaluationLogger", f'{current_working_directory}/logs/evals.log') #evaluation logger

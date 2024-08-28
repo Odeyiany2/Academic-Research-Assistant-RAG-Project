@@ -4,7 +4,7 @@ import requests
 # FastAPI backend URL
 api_url = "http://localhost:8000"
 
-st.title("Academic Research Assistant")
+st.title("Academic Research Assistant (Business and Finance)")
 
 # File upload section
 st.subheader("Upload Business or Finance Document")
