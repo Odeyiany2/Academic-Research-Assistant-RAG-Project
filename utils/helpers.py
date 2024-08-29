@@ -1,11 +1,9 @@
-helpers.py
-
 import os
 from werkzeug.utils import secure_filename
 from src.exceptions.operationshandler import system_logger
 
 
-allowed_files = ["txt", "csv", "json" "pdf", "doc", "docx", "pptx"]
+allowed_files = ["txt", "csv", "json", "pdf", "doc", "docx", "pptx"]
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_files
@@ -30,7 +28,7 @@ def file_checks(files):
             print(file.filename)
             return {
                 "detail": f"File format not supported. Use any of {allowed_files}",
-                "status_code": 400
+                "status_code": 415
             }
     
     return {
@@ -38,11 +36,7 @@ def file_checks(files):
         "status_code": 200
     }
 
-class UploadError(Exception):
-    pass
-
-
-def upload_files(files, temp_dir):
+async def upload_files(files, temp_dir):
 
     checks = file_checks(files)
     
@@ -52,7 +46,7 @@ def upload_files(files, temp_dir):
                 filename = secure_filename(file.filename)
                 file_path = os.path.join(temp_dir, filename)
 
-                file_obj = file.read()
+                file_obj = await file.read()
 
                 with open(file_path, "wb") as buffer:
                     buffer.write(file_obj)
@@ -62,8 +56,8 @@ def upload_files(files, temp_dir):
                 "status_code": 200
             }
     
-        except Exception:
-            message = f"An error occured during upload"
+        except Exception as e:
+            message = f"An error occured during upload: {e}"
             system_logger.error(
                 message,
                 # str(e),
@@ -72,3 +66,12 @@ def upload_files(files, temp_dir):
             raise UploadError(message)
 
     return checks
+
+
+class UploadError(Exception):
+    pass
+
+class QueryEngineError(Exception):
+    pass
+
+        

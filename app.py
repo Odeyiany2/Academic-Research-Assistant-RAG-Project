@@ -1,6 +1,6 @@
 import os, time, traceback
 from typing import List, Literal, Any
-from fastapi import FastAPI, Request, HTTPException, UploadFile
+from fastapi import FastAPI, Request, HTTPException, UploadFile, File
 from fastapi.responses import  PlainTextResponse, JSONResponse
 import groq
 from src.exceptions.operationshandler import llmresponse_logger, userops_logger, evaluation_logger
@@ -12,30 +12,16 @@ load_dotenv()
 
 # initialize Applications
 app = FastAPI()
-#chat_bot
-# @app.get("/upload")
-# async def process_file():
 
-# @app.get("/query")
-# async def get_user_query():
+allowed_files = ["txt", "pdf", "doc", "docx"]
 
+@app.get('/healthz')
+async def health():
+    return {
+        "application": "Academic Research Assistant LLM API",
+        "message": "running succesfully"
+    }
 
-
-
-# import tempfile, traceback
-# from typing import List, Literal, Any
-# from fastapi import FastAPI, Request, UploadFile
-# from week_2.day_1_robust_rag.main import *
-# from week_2.day_1_robust_rag.helpers import upload_file
-
-# app = FastAPI()
-
-# @app.get('/healthz')
-# async def health():
-#     return {
-#         "application": "Simple LLM API",
-#         "message": "running succesfully"
-#     }
 
 # @app.post('/upload')
 # async def process(
