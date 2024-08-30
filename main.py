@@ -6,6 +6,7 @@ load_dotenv()
 
 # pdfreader for PDFs
 from langchain_community.document_loaders import PyPDFLoader
+import pypdf
 from langchain_community.document_loaders import PyPDFDirectoryLoader
 
 # load docreader for Docs
@@ -23,7 +24,8 @@ from langchain_groq import ChatGroq
 # load embedding model
 from langchain_community.embeddings import HuggingFaceBgeEmbeddings
 #database to store vectors from embeddings
-from langchain.vectorstores import Chroma
+from langchain_community.vectorstores import Chroma
+
 
 # load chain
 from langchain.chains import RetrievalQA
@@ -34,7 +36,7 @@ from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
 from src.exceptions.operationshandler import system_logger
 
-
+import sentence_transformers
 
 
 # loading api key
@@ -83,14 +85,13 @@ def document_processing(dir = "data"):
                 # Load the text file and extend the documents list with its contents
                 docs_before_split.extend(loader.load())
         
+        return docs_before_split
+    
     except Exception as e:
         message = f"Error during document processing: {e}"
-        system_logger.log(str(e))  # Logging the error to the custom system logger
+        system_logger.error(message, str(e))  # Logging the error to the custom system logger
     
-    return docs_before_split
-
-
-
+    
 # set the splitter parameters and instantiate it
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=5000, chunk_overlap=20)
 # split the document into chunks
@@ -98,12 +99,12 @@ document_chunks = text_splitter.split_documents(document_processing())
 
 #initializing the embeddingg model
 huggingface_embeddings = HuggingFaceBgeEmbeddings(
-    model_name="sentence-transformers/all-MiniLM-l6-v2",  
+    model_name="BAAI/bge-small-en-v1.5",  
     model_kwargs={'device':'cpu'},
     encode_kwargs={'normalize_embeddings': True}
 )
 
-CHROMA_PATH = "C:\Academic_Research_Assistant_RAG\Academic-Research-Assistant-RAG-Project\chromadb"  # ChromaDB Path
+CHROMA_PATH = r"C:\Academic_Research_Assistant_RAG\Academic-Research-Assistant-RAG-Project\chromadb"  # ChromaDB Path
 # Embed the chunks and load them into the ChromaDB
 try:
     print("Starting embedding and storing in ChromaDB...")
