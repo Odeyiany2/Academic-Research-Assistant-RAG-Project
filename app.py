@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = FastAPI()
+
 CHROMA_PATH = "C:\Academic_Research_Assistant_RAG\Academic-Research-Assistant-RAG-Project\chromadb"
 
 
@@ -73,23 +74,20 @@ async def query_model(
     model = query["model"]
     temperature = query["temperature"]
 
-#     init_client = LLMClient(
-#         groq_api_key = GROQ_API_KEY, 
-#         secrets_path="./service_account.json",
-#         temperature=temperature,
-#         max_output_tokens=512
-#     )
+    llm_client = ChatGroq(
+        model="llama-3.1-70b-versatile",
+        temperature=0.1,
+        max_tokens=None,
+        timeout=None,
+        max_retries=2,
+    )
     
-#     llm_client = init_client.map_client_to_model(model)
+    # Initialize ChromaDB
+    chroma_retriever = db_chroma.as_retriever()
 
-#     chroma_collection = init_chroma(query['projectUuid'], path="C:/Users/HP/chroma_db")
-#     collection_size = get_kb_size(chroma_collection)
-#     print(f"Retrieved collection size::: {collection_size}...")
-
-#     vector_store = get_vector_store(chroma_collection)
-#     embedding = VectorStoreIndex.from_vector_store(
-#         vector_store=vector_store
-#     )
+    # Calculate collection size
+    collection_size = chroma_retriever.index.embeddings.shape[0]
+    print(f"Retrieved collection size: {collection_size}...")
 
     # experiment with choice_k to find something optimal
     choice_k = 40 if collection_size>150 \
@@ -105,7 +103,8 @@ async def query_model(
             choice_k=choice_k
             # model=model
         )
-
+        # Logging the response
+        llmresponse_logger.log(response["result"])  # Log the generated response 
         print(response.response)
         return PlainTextResponse(content=response.response, status_code=200)
     
@@ -145,4 +144,4 @@ async def reset_chat():
 if __name__ == "__main__":
     import uvicorn
     print("Starting Academic Research Assistant LLM API")
-    uvicorn.run(app, host="0.0.0.0", reload=True)
+    uvicorn.run("app:app", host="0.0.0.0", port=5000, reload=True)

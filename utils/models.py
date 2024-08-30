@@ -3,6 +3,8 @@ from pydantic import BaseModel
 from langchain_groq import ChatGroq
 from langchain_google_vertexai import ChatVertexAI
 from langchain_anthropic import ChatAnthropic
+from groq import Groq
+from anthropic import Anthropic
 
 
 class LLMClient(BaseModel):

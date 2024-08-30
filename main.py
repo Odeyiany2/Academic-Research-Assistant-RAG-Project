@@ -126,9 +126,36 @@ chat_chain = ConversationalRetrievalChain(
     return_source_documents=True
 )
 
-def qa_engine(query: str, index, llm_client, choice_k=3):
+# def qa_engine(query: str, index, llm_client, choice_k=3):
     
-    query_engine = index.as_query_engine(llm=llm_client, similarity_top_k=choice_k, verbose=True)
-    response = query_engine.query(query)
+#     query_engine = index.as_query_engine(llm=llm_client, similarity_top_k=choice_k, verbose=True)
+#     response = query_engine.query(query)
 
+#     return response
+
+prompt_template = """ You are an Academic Research Assistant that helps students, lecturers and professors to properly analyze
+their questions based on documents they upload. Use the following pieces of context to answer the question at the end. Please follow the following rules:
+1. If you don't know the answer, don't try to make up an answer. Just say "I can't find the final answer but you may want to check the following links".
+2. If you find the answer, write the answer in a concise way with five sentences maximum.
+
+{context}
+
+Question: {question}
+
+Helpful Answer:
+"""
+
+PROMPT = PromptTemplate(
+ template=prompt_template, input_variables=["context", "question"]
+)
+
+async def qa_engine(query: str, db_chroma: Chroma, llm_client, choice_k: 3):
+    retrieval_chain = RetrievalQA.from_chain_type(
+        llm=llm_client,
+        chain_type="stuff",  
+        retriever=db_chroma.as_retriever(search_type="similarity", k=choice_k),
+        return_source_documents=True,
+        chain_type_kwargs={"prompt": PROMPT}
+    )
+    response = retrieval_chain({"query": query})
     return response
