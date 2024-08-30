@@ -1,67 +1,148 @@
-import os, time, traceback
+import os, time, traceback, tempfile
 from typing import List, Literal, Any
-from fastapi import FastAPI, Request, HTTPException, UploadFile, File
+from fastapi import FastAPI, Request, UploadFile, File, Form, Depends
 from fastapi.responses import  PlainTextResponse, JSONResponse
 import groq
 from src.exceptions.operationshandler import llmresponse_logger, userops_logger, evaluation_logger
 from main import *
+from utils.helpers import *
 from dotenv import load_dotenv
 load_dotenv()
 
-
-
-# initialize Applications
 app = FastAPI()
+CHROMA_PATH = "C:\Academic_Research_Assistant_RAG\Academic-Research-Assistant-RAG-Project\chromadb"
 
-allowed_files = ["txt", "pdf", "doc", "docx"]
 
 @app.get('/healthz')
 async def health():
     return {
         "application": "Academic Research Assistant LLM API",
-        "message": "running succesfully"
+        "message":"Welcome to the RAG-based Research Assistant API!"
     }
 
+@app.post('/upload')
+async def upload_documents(
+    projectUuid: str = Form(...),
+    files: List[UploadFile] = None, 
+):
 
-# @app.post('/upload')
-# async def process(
-#     files: List[UploadFile] = None,
-#     urls: List[str] = None
-# ):
+    try:
+        # os.makedirs("temp_docs", exist_ok=True)
+        # # Save the uploaded files
+        # for file in files:
+        #     file_path = os.path.join("temp_docs", file.filename)
+        #     with open(file_path, "wb") as f:
+        #         f.write(await file.read())
 
-#     # query = await request.json()
-#         try:
-#             with tempfile.TemporaryDirectory() as temp_dir:
-                
-#                 _uploaded = upload_file(files, temp_dir)
-#                 if _uploaded["status_code"]==200:
-#                     documents = SimpleDirectoryReader(temp_dir).load_data()
-#                     app.embeddings = VectorStoreIndex.from_documents(documents)
+        with tempfile.TemporaryDirectory() as temp_dir:
+
+            _uploaded = await upload_files(files, temp_dir)
+
+            if _uploaded["status_code"]==200:
+                # Process the documents
+                document_chunks = text_splitter.split_documents(document_processing(dir="temp_docs"))
+
+                # Embed the chunks and load them into the ChromaDB
+                db_chroma = Chroma.from_documents(document_chunks, huggingface_embeddings, persist_directory=CHROMA_PATH)
+                db_chroma.persist()
+
                             
-#                     return {
-#                         "detail": "Embeddings generated succesfully",
-#                         "status_code": 200
-#                     }
-#                 else:
-#                     return _uploaded # returns status dict
+                return {
+                        "detail": "Embeddings generated and stored succesfully",
+                        "status_code": 200
+                    }
+            else:
+                return _uploaded # returns status dict
 
-#         except Exception as e:
-#             return {
-#                 "detail": "Could not generated embeddings",
-#                 "status_code": 500
-#             }
+    except Exception as e:
+        error_message = traceback.format_exc()
+        system_logger.error(f"Error during document upload: {error_message}")
+        return {
+            "detail": f"Could not generate embeddings: {e}",
+            "status_code": 500
+        }
 
 
-# @app.post('/generate')
-# async def generate_chat(request: Request):
 
-#     query = await request.json()
+@app.post('/query')
+async def query_model(
+    request: Request
+):
+
+    query = await request.json()
+    model = query["model"]
+    temperature = query["temperature"]
+
+#     init_client = LLMClient(
+#         groq_api_key = GROQ_API_KEY, 
+#         secrets_path="./service_account.json",
+#         temperature=temperature,
+#         max_output_tokens=512
+#     )
     
-#     pass
+#     llm_client = init_client.map_client_to_model(model)
+
+#     chroma_collection = init_chroma(query['projectUuid'], path="C:/Users/HP/chroma_db")
+#     collection_size = get_kb_size(chroma_collection)
+#     print(f"Retrieved collection size::: {collection_size}...")
+
+#     vector_store = get_vector_store(chroma_collection)
+#     embedding = VectorStoreIndex.from_vector_store(
+#         vector_store=vector_store
+#     )
+
+    # experiment with choice_k to find something optimal
+    choice_k = 40 if collection_size>150 \
+                    else 15 if collection_size>50 \
+                        else 10 if collection_size>20 \
+                            else 5
+
+    try:
+        response = qa_engine(
+            query["question"], 
+            db_chroma,
+            llm_client, 
+            choice_k=choice_k
+            # model=model
+        )
+
+        print(response.response)
+        return PlainTextResponse(content=response.response, status_code=200)
+    
+    except Exception as e:
+        message = f"An error occured where {model} was trying to generate a response: {e}",
+        system_logger.error(
+            message,
+            exc_info=1
+        )
+        raise QueryEngineError(message)
 
 
+@app.post('/chat')
+async def chat_with_assistant(user_input: str):
+    try:
+        response = chat_chain({"input": user_input})
+        llmresponse_logger.log(response['output_text'])  # Log the LLM response
+        return {
+            "response": response['output_text'],
+            "source_documents": response.get('source_documents', [])
+        }
+    except Exception as e:
+        system_logger.error(f"Error during chat: {str(e)}")
+        return JSONResponse(status_code=500, content={"detail": "Chat error occurred"})
 
-# if _name_ == "_main_":
-#     import uvicorn
-#     print("Starting LLM API")
-#     uvicorn.run(app, host="0.0.0.0", reload=True)
+
+@app.post('/reset')
+async def reset_chat():
+    try:
+        conversation_memory.clear()
+        return {"detail": "Chat history has been reset"}
+    except Exception as e:
+        system_logger.error(f"Error during reset: {str(e)}")
+        return JSONResponse(status_code=500, content={"detail": "Reset error occurred"})
+
+
+if __name__ == "__main__":
+    import uvicorn
+    print("Starting Academic Research Assistant LLM API")
+    uvicorn.run(app, host="0.0.0.0", reload=True)

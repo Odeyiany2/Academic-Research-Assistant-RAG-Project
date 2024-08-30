@@ -1,9 +1,35 @@
 import os
 from werkzeug.utils import secure_filename
 from src.exceptions.operationshandler import system_logger
+from deepeval import evaluate
+from deepeval.test_case import LLMTestCase
+from deepeval.metrics import AnswerRelevancyMetric
+from src.exceptions.operationshandler import *
+
+allowed_files = ["txt", "pdf", "doc", "docx"]
+
+def evaluate_model():
+    #actual_output = 
+
+    metric = AnswerRelevancyMetric(
+        threshold=0.7,
+        model="gpt-4",
+        include_reason=True
+    )
+
+    test_case = LLMTestCase(
+        #input=query,
+        #actual_output=actual_output
+    )
+
+    evaluation_logger.log(metric.measure(test_case))
+    #print(metric.score)
+    #print(metric.reason)
 
 
-allowed_files = ["txt", "csv", "json", "pdf", "doc", "docx", "pptx"]
+
+
+
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_files

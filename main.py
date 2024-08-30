@@ -103,10 +103,10 @@ huggingface_embeddings = HuggingFaceBgeEmbeddings(
     encode_kwargs={'normalize_embeddings': True}
 )
 
-CHROMA_PATH = r"C:\Academic_Research_Assistant_RAG\Academic-Research-Assistant-RAG-Project\chromadb"  # ChromaDB Path
+CHROMA_PATH = "C:\Academic_Research_Assistant_RAG\Academic-Research-Assistant-RAG-Project\chromadb"  # ChromaDB Path
 # Embed the chunks and load them into the ChromaDB
 try:
-    message = "Starting embedding and storing in ChromaDB..."
+    print("Starting embedding and storing in ChromaDB...")
     db_chroma = Chroma.from_documents(document_chunks, huggingface_embeddings, persist_directory=CHROMA_PATH)
     db_chroma.persist()
     system_logger.log("Embedding and storage completed successfully.")
@@ -115,38 +115,20 @@ except Exception as e:
     system_logger.error(message, str(e))  # Logging the error to your custom system logger
 
 
+# Initialize the conversation memory
+conversation_memory = ConversationBufferMemory(memory_key="chat_history")
 
-#instantiating our llm (only groq for now)
-llm = ChatGroq(
-    model="llama-3.1-70b-versatile",
-    temperature=0.1, #keep on playing with it. 
-    max_tokens=None,
-    timeout=None,
-    max_retries=2,
-    # other params...
+#conversational retrieval chain
+chat_chain = ConversationalRetrievalChain(
+    retriever=db_chroma.as_retriever(),
+    llm=ChatGroq(model_name=models[0]),  # Example using the first model in the list
+    memory=conversation_memory,
+    return_source_documents=True
 )
 
-prompt_template = """ You are an academic reserach assistant for students, professors and lecturers. You assisit them with answering questions
-baed on the document they provide to you.
-Use the following pieces of context to answer the question at the end. Please follow the following rules:
-1. If you don't know the answer, don't try to make up an answer. Just say "I can't find the final answer but you may want to check the following links".
-2. If you find the answer, write the answer in a concise way with ten sentences maximum.
+def qa_engine(query: str, index, llm_client, choice_k=3):
+    
+    query_engine = index.as_query_engine(llm=llm_client, similarity_top_k=choice_k, verbose=True)
+    response = query_engine.query(query)
 
-{context}
-
-Question: {question}
-
-Helpful Answer:
-"""
-
-PROMPT = PromptTemplate(
- template=prompt_template, input_variables=["context", "question"]
-)
-
-retrievalQA = RetrievalQA.from_chain_type(
-    llm=llm,
-    chain_type="stuff",
-    retriever=db_chroma.as_retriever(search_type="similarity", search_kwargs={"k": 3}),
-    return_source_documents=True,
-    chain_type_kwargs={"prompt": PROMPT}
-)
+    return response
