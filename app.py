@@ -4,8 +4,8 @@ from fastapi import FastAPI, Request, UploadFile, File, Form, Depends
 from fastapi.responses import  PlainTextResponse, JSONResponse
 import groq
 from src.exceptions.operationshandler import llmresponse_logger, userops_logger, evaluation_logger
-from main import *
-from utils.helpers import *
+from main import qa_engine, Chroma, huggingface_embeddings,document_processing,text_splitter, ChatGroq, db_chroma, conversation_memory,chat_chain
+from utils.helpers import allowed_file, QueryEngineError, system_logger, upload_files
 from dotenv import load_dotenv
 load_dotenv()
 
