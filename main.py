@@ -37,6 +37,7 @@ from langchain.memory import ConversationBufferMemory
 from src.exceptions.operationshandler import system_logger
 
 import sentence_transformers
+from sentence_transformers.cross_encoder.CrossEncoder import CrossEncoder
 
 
 # loading api key
