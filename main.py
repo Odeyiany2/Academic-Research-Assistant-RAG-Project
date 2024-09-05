@@ -35,6 +35,7 @@ from langchain.chains import ConversationalRetrievalChain
 from langchain.chains import create_retrieval_chain
 #from langchain.retrievers import create_history_aware_retriever
 from langchain.chains.history_aware_retriever import create_history_aware_retriever
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
 #load memory buffer
 from langchain.memory import ConversationBufferMemory
@@ -122,7 +123,7 @@ except Exception as e:
 
 
 # Initialize the conversation memory
-conversation_memory = ConversationBufferMemory(memory_key="chat_history")
+#conversation_memory = ConversationBufferMemory(memory_key="chat_history")
 
 # #conversational retrieval chain
 # chat_chain = ConversationalRetrievalChain(
@@ -139,16 +140,35 @@ conversation_memory = ConversationBufferMemory(memory_key="chat_history")
 
 #     return response
 
+### Contextualize question ###
+contextualize_q_system_prompt = (
+    "Given a chat history and the latest user question "
+    "which might reference context in the chat history, "
+    "formulate a standalone question which can be understood "
+    "without the chat history. Do NOT answer the question, "
+    "just reformulate it if needed and otherwise return it as is."
+)
+contextualize_q_prompt = ChatPromptTemplate.from_messages(
+    [
+        ("system", contextualize_q_system_prompt),
+        MessagesPlaceholder("chat_history"),
+        ("human", "{input}"),
+    ]
+)
+retriever = db_chroma.as_retriever()
+llm = ChatGroq(model_name=models[0], temperature=0.1)
 # Create a history-aware retriever
 history_aware_retriever = create_history_aware_retriever(
-    retriever=db_chroma.as_retriever(),
-    memory=conversation_memory
+    contextualize_q_prompt,
+    llm,
+    retriever
+    #memory=conversation_memory
 )
 
 # Create the retrieval chain
 chat_chain = create_retrieval_chain(
     retriever=history_aware_retriever,
-    llm=ChatGroq(model_name=models[0]),  # Example using the first model in the list
+    llm=ChatGroq(model_name=models[0], temperature=0.1),  
     return_source_documents=True
 )
 
