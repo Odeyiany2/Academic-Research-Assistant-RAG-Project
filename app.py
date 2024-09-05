@@ -6,6 +6,7 @@ import groq
 from src.exceptions.operationshandler import llmresponse_logger, userops_logger, evaluation_logger
 from main import qa_engine, Chroma, huggingface_embeddings,document_processing,text_splitter, ChatGroq, db_chroma, conversation_memory,chat_chain
 from utils.helpers import allowed_file, QueryEngineError, system_logger, upload_files
+from utils.evaluation import *
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -106,6 +107,10 @@ async def query_model(
         # Logging the response
         llmresponse_logger.log(response["result"])  # Log the generated response 
         print(response.response)
+
+        # Evaluate the model's response
+        evaluate_model(query["question"], response["result"])
+        
         return PlainTextResponse(content=response.response, status_code=200)
     
     except Exception as e:

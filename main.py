@@ -1,4 +1,5 @@
 #necessary Libraries
+import logging 
 import os
 import groq
 from dotenv import load_dotenv
@@ -31,6 +32,9 @@ from langchain_community.vectorstores import Chroma
 from langchain.chains import RetrievalQA
 from langchain.prompts import PromptTemplate
 from langchain.chains import ConversationalRetrievalChain
+from langchain.chains import create_retrieval_chain
+#from langchain.retrievers import create_history_aware_retriever
+from langchain.chains.history_aware_retriever import create_history_aware_retriever
 
 #load memory buffer
 from langchain.memory import ConversationBufferMemory
@@ -110,23 +114,23 @@ CHROMA_PATH = r"C:\Academic_Research_Assistant_RAG\Academic-Research-Assistant-R
 try:
     print("Starting embedding and storing in ChromaDB...")
     db_chroma = Chroma.from_documents(document_chunks, huggingface_embeddings, persist_directory=CHROMA_PATH)
-    db_chroma.persist()
-    system_logger.log("Embedding and storage completed successfully.")
+    #db_chroma.persist()
+    system_logger.log(logging.INFO, "Embedding and storage completed successfully.")
 except Exception as e:
-    message = f"Error during embedding or storage: {e}"
-    system_logger.error(message, str(e))  # Logging the error to your custom system logger
+    #message = f"Error during embedding or storage: {e}"
+    system_logger.error(f"Error occurred during embedding or storage: {str(e)} ")  # Logging the error to custom system logger
 
 
 # Initialize the conversation memory
 conversation_memory = ConversationBufferMemory(memory_key="chat_history")
 
-#conversational retrieval chain
-chat_chain = ConversationalRetrievalChain(
-    retriever=db_chroma.as_retriever(),
-    llm=ChatGroq(model_name=models[0]),  # Example using the first model in the list
-    memory=conversation_memory,
-    return_source_documents=True
-)
+# #conversational retrieval chain
+# chat_chain = ConversationalRetrievalChain(
+#     retriever=db_chroma.as_retriever(),
+#     llm=ChatGroq(model_name=models[0]),  # Example using the first model in the list
+#     memory=conversation_memory,
+#     return_source_documents=True
+# )
 
 # def qa_engine(query: str, index, llm_client, choice_k=3):
     
@@ -134,6 +138,20 @@ chat_chain = ConversationalRetrievalChain(
 #     response = query_engine.query(query)
 
 #     return response
+
+# Create a history-aware retriever
+history_aware_retriever = create_history_aware_retriever(
+    retriever=db_chroma.as_retriever(),
+    memory=conversation_memory
+)
+
+# Create the retrieval chain
+chat_chain = create_retrieval_chain(
+    retriever=history_aware_retriever,
+    llm=ChatGroq(model_name=models[0]),  # Example using the first model in the list
+    return_source_documents=True
+)
+
 
 prompt_template = """ You are an Academic Research Assistant that helps students, lecturers and professors to properly analyze
 their questions based on documents they upload. Use the following pieces of context to answer the question at the end. Please follow the following rules:
