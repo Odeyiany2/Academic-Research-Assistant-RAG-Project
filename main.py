@@ -36,7 +36,10 @@ from langchain.chains import create_retrieval_chain
 #from langchain.retrievers import create_history_aware_retriever
 from langchain.chains.history_aware_retriever import create_history_aware_retriever
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+<<<<<<< HEAD
 from langchain.chains.combine_documents import create_stuff_documents_chain
+=======
+>>>>>>> 4646dc8e65bd212c39d6448663cd36c40cc9adf2
 
 #load memory buffer
 from langchain.memory import ConversationBufferMemory
@@ -145,6 +148,10 @@ except Exception as e:
 
 #     return response
 
+<<<<<<< HEAD
+=======
+### Contextualize question ###
+>>>>>>> 4646dc8e65bd212c39d6448663cd36c40cc9adf2
 contextualize_q_system_prompt = (
     "Given a chat history and the latest user question "
     "which might reference context in the chat history, "
@@ -158,6 +165,7 @@ contextualize_q_prompt = ChatPromptTemplate.from_messages(
         MessagesPlaceholder("chat_history"),
         ("human", "{input}"),
     ]
+<<<<<<< HEAD
 )
 
 # Create a custom retriever that might be compatible
@@ -177,6 +185,24 @@ history_aware_retriever = create_history_aware_retriever(
     contextualize_q_prompt,
     ChatGroq(model_name=models[0], temperature=0.1),
     db_chroma.as_retriever()
+=======
+)
+retriever = db_chroma.as_retriever()
+llm = ChatGroq(model_name=models[0], temperature=0.1)
+# Create a history-aware retriever
+history_aware_retriever = create_history_aware_retriever(
+    contextualize_q_prompt,
+    llm,
+    retriever
+    #memory=conversation_memory
+)
+
+# Create the retrieval chain
+chat_chain = create_retrieval_chain(
+    retriever=history_aware_retriever,
+    llm=ChatGroq(model_name=models[0], temperature=0.1),  
+    return_source_documents=True
+>>>>>>> 4646dc8e65bd212c39d6448663cd36c40cc9adf2
 )
 
 
