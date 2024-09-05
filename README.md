@@ -8,7 +8,7 @@ As a penultimate student who is studying Accounting, the use case for my RAG cha
 
 * LangChain: generate embeddings for the doument and process user queries
   
-* MongoDB: store the generated embeddings in vector store
+* ChromaDB: store the generated embeddings in vector store
 
 * Streamlit: For the deployment of the chatbot
 
