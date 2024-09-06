@@ -13,7 +13,7 @@ load_dotenv()
 
 app = FastAPI()
 
-CHROMA_PATH = r"C:\Academic_Research_Assistant_RAG\Academic-Research-Assistant-RAG-Project\chromadb"
+CHROMA_PATH = r"C:\Academic-Research-Assistant-RAG-2\Academic-Research-Assistant-RAG-Project\chromadb"
 
 
 @app.get('/healthz')

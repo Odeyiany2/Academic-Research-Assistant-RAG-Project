@@ -114,7 +114,7 @@ huggingface_embeddings = HuggingFaceBgeEmbeddings(
     encode_kwargs={'normalize_embeddings': True}
 )
 
-CHROMA_PATH = r"C:\Academic_Research_Assistant_RAG\Academic-Research-Assistant-RAG-Project\chromadb"  # ChromaDB Path
+CHROMA_PATH = r"C:\Academic-Research-Assistant-RAG-2\Academic-Research-Assistant-RAG-Project\chromadb"  # ChromaDB Path
 # Embed the chunks and load them into the ChromaDB
 try:
     print("Starting embedding and storing in ChromaDB...")
