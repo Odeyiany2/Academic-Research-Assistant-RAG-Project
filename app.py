@@ -6,6 +6,7 @@ import groq
 from src.exceptions.operationshandler import llmresponse_logger, userops_logger, evaluation_logger
 from main import qa_engine, Chroma, huggingface_embeddings,document_processing,text_splitter, ChatGroq, db_chroma, conversation_memory,chat_chain
 from utils.helpers import allowed_file, QueryEngineError, system_logger, upload_files
+from main import *
 from utils.evaluation import *
 from dotenv import load_dotenv
 load_dotenv()
@@ -43,10 +44,9 @@ async def upload_documents(
             if _uploaded["status_code"]==200:
                 # Process the documents
                 document_chunks = text_splitter.split_documents(document_processing(dir="temp_docs"))
-
                 # Embed the chunks and load them into the ChromaDB
                 db_chroma = Chroma.from_documents(document_chunks, huggingface_embeddings, persist_directory=CHROMA_PATH)
-                db_chroma.persist()
+                #db_chroma.persist()
 
                             
                 return {
