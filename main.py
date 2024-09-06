@@ -99,8 +99,7 @@ def document_processing(dir = "data"):
         return docs_before_split
     
     except Exception as e:
-        message = f"Error during document processing: {e}"
-        system_logger.error(message, str(e))  # Logging the error to the custom system logger
+        system_logger.error(f"Error during document processing: {str(e)}") # Logging the error to the custom system logger
     
     
 # set the splitter parameters and instantiate it
