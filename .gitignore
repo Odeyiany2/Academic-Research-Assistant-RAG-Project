@@ -3,4 +3,5 @@
 *.json
 data*/
 __pycache__/
-chromadb/chroma.sqlite3
+chromadb*
+venv*/
