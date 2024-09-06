@@ -160,17 +160,17 @@ contextualize_q_prompt = ChatPromptTemplate.from_messages(
     ]
 )
 
-# Create a custom retriever that might be compatible
-def create_history_aware_retriever(prompt_template, llm, retriever):
-    def history_aware_query(query, chat_history):
-        # Generate the standalone query from the contextualize prompt and history
-        reformulated_query = prompt_template.format_messages(chat_history=chat_history, input=query)
-        reformulated_response = llm(reformulated_query)
-        # Retrieve documents based on reformulated query
-        documents = retriever.get_relevant_documents(reformulated_response["result"])
-        return documents
+# # Create a custom retriever that might be compatible
+# def create_history_aware_retriever(prompt_template, llm, retriever):
+#     def history_aware_query(query, chat_history):
+#         # Generate the standalone query from the contextualize prompt and history
+#         reformulated_query = prompt_template.format_messages(chat_history=chat_history, input=query)
+#         reformulated_response = llm(reformulated_query)
+#         # Retrieve documents based on reformulated query
+#         documents = retriever.get_relevant_documents(reformulated_response["result"])
+#         return documents
 
-    return history_aware_query
+#     return history_aware_query
 
 # Create history-aware retriever
 history_aware_retriever = create_history_aware_retriever(
