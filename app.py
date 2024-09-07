@@ -57,7 +57,7 @@ async def upload_documents(
                 # # Persist the database
                 # db_chroma.persist()
                 # Process the documents
-                document_chunks = text_splitter.split_documents(document_processing(dir="temp_docs"))
+                document_chunks = text_splitter.split_documents(document_processing(dir=temp_dir))
 
                 # Embed the chunks and load them into the ChromaDB
                 vector_store = Chroma.from_documents(document_chunks, huggingface_embeddings, persist_directory=CHROMA_PATH)
