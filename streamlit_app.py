@@ -73,6 +73,8 @@ if st.button("Submit Query"):
             "question": question
         }
         response = requests.post(QUERY_URL, json=query_payload)
+        st.write(f"Response Status Code: {response.status_code}")  # Add this line to check status code
+        st.write(f"Response Content: {response.text}") 
         if response.status_code == 200:
             st.write("Model's Response:")
             st.write(response.text)

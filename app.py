@@ -58,7 +58,10 @@ async def upload_documents(
                 # db_chroma.persist()
                 # Process the documents
                 document_chunks = text_splitter.split_documents(document_processing(dir=temp_dir))
+                document_chunks = [doc for doc in document_chunks if doc.page_content and doc.page_content.strip()]
 
+                if not document_chunks:
+                    raise ValueError("No valid documents to process. All documents have empty or invalid content.")
                 # Embed the chunks and load them into the ChromaDB
                 vector_store = Chroma.from_documents(document_chunks, huggingface_embeddings, persist_directory=CHROMA_PATH)
                 vector_store.persist()
@@ -97,35 +100,52 @@ async def query_model(
         timeout=None,
         max_retries=2,
     )
-    
-    # Initialize ChromaDB
-    chroma_retriever = vector_store.as_retriever()
+    try: 
+        # Initialize ChromaDB
+        # Load ChromaDB
+        vector_store = Chroma(huggingface_embeddings, persist_directory=CHROMA_PATH)
+        chroma_retriever = vector_store.as_retriever()
 
-    # Calculate collection size
-    collection_size = chroma_retriever.index.embeddings.shape[0]
-    print(f"Retrieved collection size: {collection_size}...")
+        # Query the model
+        collection_size = vector_store._collection.count()
+        print(f"Retrieved collection size: {collection_size}...")
+        #chroma_retriever = vector_store.as_retriever()
 
-    # experiment with choice_k to find something optimal
-    choice_k = 40 if collection_size>150 \
-                    else 15 if collection_size>50 \
-                        else 10 if collection_size>20 \
-                            else 5
+        #   # Process documents and split them into chunks
+        # document_chunks = text_splitter.split_documents(document_processing(dir="temp_docs"))
+        
+        # # # Filter documents that have non-empty content
+        # document_chunks = [doc for doc in document_chunks if doc.page_content and doc.page_content.strip()]
+        
+        # # # Raise an error if no valid documents remain
+        # if not document_chunks:
+        #     raise ValueError("No valid documents to process. All documents have empty or invalid content.")
+        
+        # Calculate collection size
+        collection_size = vector_store._collection.count()
+        print(f"Retrieved collection size: {collection_size}...")
 
-    try:
-        response = qa_engine(
+        # experiment with choice_k to find something optimal
+        choice_k = 40 if collection_size>150 \
+                        else 15 if collection_size>50 \
+                            else 10 if collection_size>20 \
+                                else 5
+
+        
+        response = await qa_engine(
             query["question"], 
             vector_store,
             llm_client, 
             choice_k=choice_k
-            # model=model
-        )
-        # Logging the response
+                # model=model
+            )
+            # Logging the response
         llmresponse_logger.log(response["result"])  # Log the generated response 
         print(response.response)
 
         # Evaluate the model's response
         evaluate_model(query["question"], response["result"])
-        
+            
         return PlainTextResponse(content=response.response, status_code=200)
     
     except Exception as e:

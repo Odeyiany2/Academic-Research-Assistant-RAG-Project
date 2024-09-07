@@ -3,5 +3,6 @@
 *.json
 data*/
 __pycache__/
-chromadb*
+chromadb*/
 venv*/
+temp_docs*/
