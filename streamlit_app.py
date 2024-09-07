@@ -41,7 +41,7 @@ QUERY_URL = "http://127.0.0.1:5000/query"
 CHAT_URL = "http://127.0.0.1:5000/chat"
 RESET_URL = "http://127.0.0.1:5000/reset"
 
-st.title("Academic Research Assistant")
+st.title("Academic Research Assistant - Business and Finance")
 
 # Sidebar for file upload
 st.sidebar.header("Upload Documents")

@@ -43,7 +43,7 @@ async def upload_documents(
 
             if _uploaded["status_code"]==200:
                 # Process the documents
-                document_chunks = text_splitter.split_documents(document_processing(dir="temp_docs"))
+                document_chunks = text_splitter.split_documents(document_processing(dir=temp_dir))
                 # # Step 2: Embed the chunks
                 # embeddings = huggingface_embeddings.embed_documents(document_chunks)
 
