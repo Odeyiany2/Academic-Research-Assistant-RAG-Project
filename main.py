@@ -124,7 +124,7 @@ huggingface_embeddings = HuggingFaceBgeEmbeddings(
 try:
     print("Starting embedding and storing in ChromaDB...")
     vector_store = Chroma.from_documents(document_chunks, huggingface_embeddings, persist_directory=CHROMA_PATH)
-    vector_store.persist()
+    #vector_store.persist()
     system_logger.log(logging.INFO, "Embedding and storage completed successfully.")
 except Exception as e:
     #message = f"Error during embedding or storage: {e}"
@@ -181,13 +181,13 @@ contextualize_q_prompt = ChatPromptTemplate.from_messages(
 history_aware_retriever = create_history_aware_retriever(
     contextualize_q_prompt,
     ChatGroq(model_name=models[0], temperature=0.1),
-    vector_store.as_retriever(search_type="similarity", k = 20)
+    vector_store.as_retriever(search_type="similarity",
+                              search_kwargs={"k": 3},)
 )
-
 
 prompt_template = """ You are an Academic Research Assistant that helps students, lecturers and professors to properly analyze
 their questions based on documents they upload. Use the following pieces of context to answer the question at the end. Please follow the following rules:
-1. If you don't know the answer, don't try to make up an answer. Just say "I can't find the final answer but you may want to check the following links".
+1. If you don't know the answer from the provided document, don't try to make up an answer. Just say "I can't find the final answer but you may want to check the following links".
 2. If you find the answer, write the answer in a concise way with five sentences maximum.
 
 {context}
@@ -230,11 +230,11 @@ PROMPT = PromptTemplate(
  template=prompt_template, input_variables=["context", "question"]
 )
 
-async def qa_engine(query: str, db_chroma: Chroma, llm_client, choice_k: 20):
+async def qa_engine(query: str, db_chroma: Chroma, llm_client, choice_k: 2):
     retrieval_chain = RetrievalQA.from_chain_type(
         llm=llm_client,
         chain_type="stuff",  
-        retriever=db_chroma.as_retriever(search_type="similarity", k=choice_k),
+        retriever=db_chroma.as_retriever(search_type="similarity", search_kwargs={"k": choice_k}),
         return_source_documents=True,
         chain_type_kwargs={"prompt": PROMPT}
     )
