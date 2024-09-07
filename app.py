@@ -4,7 +4,7 @@ from fastapi import FastAPI, Request, UploadFile, File, Form, Depends
 from fastapi.responses import  PlainTextResponse, JSONResponse
 import groq
 from src.exceptions.operationshandler import llmresponse_logger, userops_logger, evaluation_logger
-from main import qa_engine, Chroma, huggingface_embeddings,document_processing,text_splitter, ChatGroq, conversation_memory,chat_chain
+from main import qa_engine, Chroma, huggingface_embeddings,document_processing,text_splitter, ChatGroq, get_session_history, chat_chain
 from utils.helpers import allowed_file, QueryEngineError, system_logger, upload_files
 from main import *
 from utils.evaluation import *
@@ -151,15 +151,23 @@ async def chat_with_assistant(user_input: str):
         return JSONResponse(status_code=500, content={"detail": "Chat error occurred"})
 
 
-@app.post('/reset')
-async def reset_chat():
+# @app.post('/reset')
+async def reset_chat(request: Request):
     try:
-        conversation_memory.clear()
-        return {"detail": "Chat history has been reset"}
+        session_id = request.query_params.get("session_id")
+
+        if session_id:
+            chat_history = get_session_history(session_id)
+            chat_history.clear()  # Clear the chat history
+
+            return {"detail": f"Chat history for session {session_id} has been reset"}
+        else:
+            return {"detail": "Session ID not provided"}, 400
+
     except Exception as e:
         system_logger.error(f"Error during reset: {str(e)}")
         return JSONResponse(status_code=500, content={"detail": "Reset error occurred"})
-
+    
 
 if __name__ == "__main__":
     import uvicorn

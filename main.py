@@ -157,32 +157,28 @@ contextualize_q_system_prompt = (
     "without the chat history. Do NOT answer the question, "
     "just reformulate it if needed and otherwise return it as is."
 )
-contextualize_q_prompt = ChatPromptTemplate.from_messages(
-    [
-        ("system", contextualize_q_system_prompt),
-        MessagesPlaceholder("chat_history"),
-        ("human", "{input}"),
-    ]
+# contextualize_q_prompt = ChatPromptTemplate.from_messages(
+#     [
+#         ("system", contextualize_q_system_prompt),
+#         MessagesPlaceholder("chat_history"),
+#         ("human", "{input}"),
+#     ]
+# )
+
+contextualize_q_prompt = PromptTemplate(
+    input_variables=["chat_history", "input"],
+    template="""
+    System: {chat_history}
+    User: {input}
+    """,
 )
 
-# # Create a custom retriever that might be compatible
-# def create_history_aware_retriever(prompt_template, llm, retriever):
-#     def history_aware_query(query, chat_history):
-#         # Generate the standalone query from the contextualize prompt and history
-#         reformulated_query = prompt_template.format_messages(chat_history=chat_history, input=query)
-#         reformulated_response = llm(reformulated_query)
-#         # Retrieve documents based on reformulated query
-#         documents = retriever.get_relevant_documents(reformulated_response["result"])
-#         return documents
-
-#     return history_aware_query
-#retriever = db_chroma.as_retriever()
 # Create history-aware retriever
 history_aware_retriever = create_history_aware_retriever(
-    contextualize_q_prompt,
     ChatGroq(model_name=models[0], temperature=0.1),
     vector_store.as_retriever(search_type="similarity",
-                              search_kwargs={"k": 3},)
+                              search_kwargs={"k": 3},),
+    contextualize_q_prompt,
 )
 
 prompt_template = """ You are an Academic Research Assistant that helps students, lecturers and professors to properly analyze
