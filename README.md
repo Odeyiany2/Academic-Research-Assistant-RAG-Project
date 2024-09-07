@@ -12,14 +12,20 @@ As a penultimate student who is studying Accounting, the use case for my RAG cha
 
 * Streamlit: For the deployment of the chatbot
 
-### Models Used
+### Models Used to be Used
 - Via Groq:
     - `llama-3.1-70b-versatile`
-- Via Vertex AI on GCP:
+- Via Vertex AI on GCP (Not used yet):
     - `gemini-1.5-pro-001`
     - `mistral-large@2407`
-- Via AnthropicVertex (GCP):
+- Via AnthropicVertex GCP (Not used yet):
     - `claude-3-opus@20240229`
     - `claude-3-5-sonnet@20240620`
 
-## To Run Locally 
+## Future Considerations to Build a Robust RAG
+- Training with more files to help the LLM learn more. 
+- Possibility of expanding the courses to more.
+- Getting access to more LLMS as the last two on the Model section to get better comparisons on how different models work
+
+## To Run Locally
+Follow the steps below to run the codes locally and replicate the results. 
