@@ -22,10 +22,42 @@ As a penultimate student who is studying Accounting, the use case for my RAG cha
     - `claude-3-opus@20240229`
     - `claude-3-5-sonnet@20240620`
 
-## Future Considerations to Build a Robust RAG
-- Training with more files to help the LLM learn more. 
-- Possibility of expanding the courses to more.
-- Getting access to more LLMS as the last two on the Model section to get better comparisons on how different models work
-
 ## To Run Locally
 Follow the steps below to run the codes locally and replicate the results. 
+- Clone the repo to your local machine
+   - VS code: use the link below to clone on vs code
+     ```
+     https://github.com/Odeyiany2/Academic-Research-Assistant-RAG-Project.git
+     ```
+   - Git Bash
+     
+     ```
+     gh repo clone Odeyiany2/Academic-Research-Assistant-RAG-Project
+     ```
+- Create a virtual environment, activate it and install the requirements.txt
+  ```
+  pythom -m env venv
+  ```
+  
+  ```
+  venv\Scripts\activate
+  ```
+  
+  ```
+  pip install -r requirements.txt
+  ```
+- Run the app.py file
+  ```
+  uvicorn app:app --host 127.0.0.1 --port 5000 --reload
+  ```
+- Run the streamlit_app.py file
+  ```
+  streamlit run streamlit_app.py
+  ```
+
+**Note: Ensure to create a file to store your API keys and access them.**
+
+## Future Considerations to Build a more Robust RAG
+- Training with more files to help the LLM. 
+- Possibility of expanding the number of courses.
+- Getting access to more LLMS as the last two on the Model section to get better comparisons on how different models perform.
