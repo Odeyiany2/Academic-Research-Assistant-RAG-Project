@@ -61,7 +61,7 @@ if st.sidebar.button("Upload"):
 # Main area for querying the model
 st.header("Query the Model")
 
-model = st.selectbox("Choose the model", ["mixtral-8x7b-32768"])
+model = st.selectbox("Choose the model", ["llama-3.1-70b-versatile"])
 # temperature = st.slider("Temperature", 0.0, 1.0, 0.5)
 question = st.text_area("Enter your question")
 
