@@ -3,7 +3,7 @@ from deepeval.test_case import LLMTestCase
 from deepeval.metrics import AnswerRelevancyMetric
 from src.exceptions.operationshandler import *
 from utils.helpers import *
-from app import query_model
+#from app import query_model
 
 
 def evaluate_model(query, model_response):

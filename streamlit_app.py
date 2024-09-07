@@ -33,6 +33,7 @@
 import streamlit as st
 import requests
 import json
+import uuid
 
 # Set your API endpoint URLs
 UPLOAD_URL = "http://127.0.0.1:5000/upload"
@@ -44,7 +45,9 @@ st.title("Academic Research Assistant")
 
 # Sidebar for file upload
 st.sidebar.header("Upload Documents")
-project_uuid = st.sidebar.text_input("Project UUID")
+project_uuid = st.sidebar.text_input("Project UUID", value=str(uuid.uuid4()))
+st.sidebar.write("If you don't have a Project UUID, one has been automatically generated for you.")
+temperature = st.sidebar.slider("Temperature", 0.0, 1.0, 0.5)
 uploaded_files = st.sidebar.file_uploader("Choose files", accept_multiple_files=True)
 
 if st.sidebar.button("Upload"):
@@ -59,7 +62,7 @@ if st.sidebar.button("Upload"):
 st.header("Query the Model")
 
 model = st.selectbox("Choose the model", ["mixtral-8x7b-32768"])
-temperature = st.slider("Temperature", 0.0, 1.0, 0.5)
+# temperature = st.slider("Temperature", 0.0, 1.0, 0.5)
 question = st.text_area("Enter your question")
 
 if st.button("Submit Query"):
