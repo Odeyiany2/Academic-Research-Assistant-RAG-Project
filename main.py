@@ -101,9 +101,13 @@ def document_processing(dir = "data"):
     except Exception as e:
         system_logger.error(f"Error during document processing: {str(e)}") # Logging the error to the custom system logger
     
+
+
+CHROMA_PATH = r"C:\Academic-Research-Assistant-RAG-2\Academic-Research-Assistant-RAG-Project\chromadb"  # ChromaDB Path
     
 # set the splitter parameters and instantiate it
-text_splitter = RecursiveCharacterTextSplitter(chunk_size=5000, chunk_overlap=20)
+text_splitter = RecursiveCharacterTextSplitter(chunk_size=5000, chunk_overlap=100, 
+                                               is_separator_regex=False)
 # split the document into chunks
 document_chunks = text_splitter.split_documents(document_processing())
 
@@ -114,16 +118,18 @@ huggingface_embeddings = HuggingFaceBgeEmbeddings(
     encode_kwargs={'normalize_embeddings': True}
 )
 
-CHROMA_PATH = r"C:\Academic-Research-Assistant-RAG-2\Academic-Research-Assistant-RAG-Project\chromadb"  # ChromaDB Path
+
 # Embed the chunks and load them into the ChromaDB
+
 try:
     print("Starting embedding and storing in ChromaDB...")
-    db_chroma = Chroma.from_documents(document_chunks, huggingface_embeddings, persist_directory=CHROMA_PATH)
-    #db_chroma.persist()
+    vector_store = Chroma.from_documents(document_chunks, huggingface_embeddings, persist_directory=CHROMA_PATH)
+    vector_store.persist()
     system_logger.log(logging.INFO, "Embedding and storage completed successfully.")
 except Exception as e:
     #message = f"Error during embedding or storage: {e}"
     system_logger.error(f"Error occurred during embedding or storage: {str(e)} ")  # Logging the error to custom system logger
+
 
 
 # Initialize the conversation memory
@@ -170,12 +176,12 @@ contextualize_q_prompt = ChatPromptTemplate.from_messages(
 #         return documents
 
 #     return history_aware_query
-
+#retriever = db_chroma.as_retriever()
 # Create history-aware retriever
 history_aware_retriever = create_history_aware_retriever(
     contextualize_q_prompt,
     ChatGroq(model_name=models[0], temperature=0.1),
-    db_chroma.as_retriever()
+    vector_store.as_retriever(search_type="similarity", k = 20)
 )
 
 
@@ -224,7 +230,7 @@ PROMPT = PromptTemplate(
  template=prompt_template, input_variables=["context", "question"]
 )
 
-async def qa_engine(query: str, db_chroma: Chroma, llm_client, choice_k: 3):
+async def qa_engine(query: str, db_chroma: Chroma, llm_client, choice_k: 20):
     retrieval_chain = RetrievalQA.from_chain_type(
         llm=llm_client,
         chain_type="stuff",  

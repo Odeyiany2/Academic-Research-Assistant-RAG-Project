@@ -4,7 +4,7 @@ from fastapi import FastAPI, Request, UploadFile, File, Form, Depends
 from fastapi.responses import  PlainTextResponse, JSONResponse
 import groq
 from src.exceptions.operationshandler import llmresponse_logger, userops_logger, evaluation_logger
-from main import qa_engine, Chroma, huggingface_embeddings,document_processing,text_splitter, ChatGroq, db_chroma, conversation_memory,chat_chain
+from main import qa_engine, Chroma, huggingface_embeddings,document_processing,text_splitter, ChatGroq, conversation_memory,chat_chain
 from utils.helpers import allowed_file, QueryEngineError, system_logger, upload_files
 from main import *
 from utils.evaluation import *
@@ -44,13 +44,26 @@ async def upload_documents(
             if _uploaded["status_code"]==200:
                 # Process the documents
                 document_chunks = text_splitter.split_documents(document_processing(dir="temp_docs"))
-                # Embed the chunks and load them into the ChromaDB
-                db_chroma = Chroma.from_documents(document_chunks, 
-                                                  huggingface_embeddings, 
-                                                  persist_directory=CHROMA_PATH)
-                db_chroma.persist()
+                # # Step 2: Embed the chunks
+                # embeddings = huggingface_embeddings.embed_documents(document_chunks)
 
-                            
+                # # Step 3: Load the embedded chunks into ChromaDB
+                # global db_chroma
+                # if db_chroma is None:
+                #     initialize_chroma()  # Ensure ChromaDB is initialized
+
+                # db_chroma.add_documents(document_chunks, embeddings)  # Add chunks to ChromaDB
+                
+                # # Persist the database
+                # db_chroma.persist()
+                # Process the documents
+                document_chunks = text_splitter.split_documents(document_processing(dir="temp_docs"))
+
+                # Embed the chunks and load them into the ChromaDB
+                vector_store = Chroma.from_documents(document_chunks, huggingface_embeddings, persist_directory=CHROMA_PATH)
+                vector_store.persist()
+
+                
                 return {
                         "detail": "Embeddings generated and stored succesfully",
                         "status_code": 200
@@ -86,7 +99,7 @@ async def query_model(
     )
     
     # Initialize ChromaDB
-    chroma_retriever = db_chroma.as_retriever()
+    chroma_retriever = vector_store.as_retriever()
 
     # Calculate collection size
     collection_size = chroma_retriever.index.embeddings.shape[0]
@@ -101,7 +114,7 @@ async def query_model(
     try:
         response = qa_engine(
             query["question"], 
-            db_chroma,
+            vector_store,
             llm_client, 
             choice_k=choice_k
             # model=model
