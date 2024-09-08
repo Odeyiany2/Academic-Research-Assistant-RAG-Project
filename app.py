@@ -37,42 +37,30 @@ async def upload_documents(
         #     with open(file_path, "wb") as f:
         #         f.write(await file.read())
 
-        with tempfile.TemporaryDirectory() as temp_dir:
+        #with tempfile.TemporaryDirectory() as temp_dir:
 
-            _uploaded = await upload_files(files, temp_dir)
+        _uploaded = await upload_files(files, "temp_docs")
 
-            if _uploaded["status_code"]==200:
+        if _uploaded["status_code"]==200:
                 # Process the documents
-                document_chunks = text_splitter.split_documents(document_processing(dir=temp_dir))
-                # # Step 2: Embed the chunks
-                # embeddings = huggingface_embeddings.embed_documents(document_chunks)
-
-                # # Step 3: Load the embedded chunks into ChromaDB
-                # global db_chroma
-                # if db_chroma is None:
-                #     initialize_chroma()  # Ensure ChromaDB is initialized
-
-                # db_chroma.add_documents(document_chunks, embeddings)  # Add chunks to ChromaDB
+            document_chunks = text_splitter.split_documents(document_processing(dir="temp_docs"))
                 
-                # # Persist the database
-                # db_chroma.persist()
-                # Process the documents
-                document_chunks = text_splitter.split_documents(document_processing(dir=temp_dir))
-                document_chunks = [doc for doc in document_chunks if doc.page_content and doc.page_content.strip()]
+            document_chunks = [doc for doc in document_chunks if doc.page_content and doc.page_content.strip()]
 
-                if not document_chunks:
-                    raise ValueError("No valid documents to process. All documents have empty or invalid content.")
+            if not document_chunks:
+                raise ValueError("No valid documents to process. All documents have empty or invalid content.")
                 # Embed the chunks and load them into the ChromaDB
-                vector_store = Chroma.from_documents(document_chunks, huggingface_embeddings, persist_directory=CHROMA_PATH)
-                vector_store.persist()
+            vector_store = Chroma.from_documents(document_chunks, huggingface_embeddings, persist_directory=CHROMA_PATH)
+            vector_store.persist()
 
                 
-                return {
-                        "detail": "Embeddings generated and stored succesfully",
-                        "status_code": 200
-                    }
-            else:
-                return _uploaded # returns status dict
+            return "File uploaded successfully"
+        # {
+                    # "detail": "Embeddings generated and stored succesfully",
+                    # "status_code": 200
+                    # }
+        else:
+            return _uploaded # returns status dict
 
     except Exception as e:
         error_message = traceback.format_exc()
@@ -89,7 +77,8 @@ async def query_model(
     request: Request
 ):
 
-    query = await request.json()
+    json_content = request.json()
+    query = json_content.get("query")
     model = query["model"]
     temperature = query["temperature"]
 
@@ -103,24 +92,18 @@ async def query_model(
     try: 
         # Initialize ChromaDB
         # Load ChromaDB
-        vector_store = Chroma(huggingface_embeddings, persist_directory=CHROMA_PATH)
+        # Process documents and split them into chunks
+        document_chunks = text_splitter.split_documents(document_processing(dir="temp_docs"))
+        
+        # Filter documents that have non-empty content
+        document_chunks = [doc for doc in document_chunks if doc.page_content and doc.page_content.strip()]
+        
+        # Raise an error if no valid documents remain
+        if not document_chunks:
+            raise ValueError("No valid documents to process. All documents have empty or invalid content.")
+        vector_store = Chroma.from_documents(document_chunks, embedding_function=huggingface_embeddings, persist_directory=CHROMA_PATH)
         chroma_retriever = vector_store.as_retriever()
 
-        # Query the model
-        collection_size = vector_store._collection.count()
-        print(f"Retrieved collection size: {collection_size}...")
-        #chroma_retriever = vector_store.as_retriever()
-
-        #   # Process documents and split them into chunks
-        # document_chunks = text_splitter.split_documents(document_processing(dir="temp_docs"))
-        
-        # # # Filter documents that have non-empty content
-        # document_chunks = [doc for doc in document_chunks if doc.page_content and doc.page_content.strip()]
-        
-        # # # Raise an error if no valid documents remain
-        # if not document_chunks:
-        #     raise ValueError("No valid documents to process. All documents have empty or invalid content.")
-        
         # Calculate collection size
         collection_size = vector_store._collection.count()
         print(f"Retrieved collection size: {collection_size}...")
@@ -131,10 +114,10 @@ async def query_model(
                             else 10 if collection_size>20 \
                                 else 5
 
-        
+        # Query the model
         response = await qa_engine(
             query["question"], 
-            vector_store,
+            chroma_retriever,
             llm_client, 
             choice_k=choice_k
                 # model=model
@@ -171,7 +154,7 @@ async def chat_with_assistant(user_input: str):
         return JSONResponse(status_code=500, content={"detail": "Chat error occurred"})
 
 
-# @app.post('/reset')
+@app.post('/reset')
 async def reset_chat(request: Request):
     try:
         session_id = request.query_params.get("session_id")

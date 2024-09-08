@@ -73,8 +73,8 @@ if st.button("Submit Query"):
             "question": question
         }
         response = requests.post(QUERY_URL, json=query_payload)
-        st.write(f"Response Status Code: {response.status_code}")  # Add this line to check status code
-        st.write(f"Response Content: {response.text}") 
+        # st.write(f"Response Status Code: {response.status_code}")  # Add this line to check status code
+        # st.write(f"Response Content: {response.text}") 
         if response.status_code == 200:
             st.write("Model's Response:")
             st.write(response.text)
@@ -83,31 +83,31 @@ if st.button("Submit Query"):
     else:
         st.error("Please enter a question.")
 
-# # Chat with the Assistant
-# st.header("Chat with the Assistant")
+# Chat with the Assistant
+st.header("Chat with the Assistant")
 
-# user_input = st.text_input("You:")
+user_input = st.text_input("You:")
 
-# if st.button("Send"):
-#     if user_input:
-#         response = requests.post(CHAT_URL, json={"user_input": user_input})
-#         if response.status_code == 200:
-#             chat_response = response.json()
-#             st.write("Assistant:")
-#             st.write(chat_response["response"])
-#             if chat_response["source_documents"]:
-#                 st.write("Source Documents:")
-#                 st.json(chat_response["source_documents"])
-#         else:
-#             st.error("Error during chat. Please try again.")
-#     else:
-#         st.error("Please enter a message.")
+if st.button("Send"):
+    if user_input:
+        response = requests.post(CHAT_URL, json={"user_input": user_input})
+        if response.status_code == 200:
+            chat_response = response.json()
+            st.write("Assistant:")
+            st.write(chat_response["response"])
+            if chat_response["source_documents"]:
+                st.write("Source Documents:")
+                st.json(chat_response["source_documents"])
+        else:
+            st.error("Error during chat. Please try again.")
+    else:
+        st.error("Please enter a message.")
 
-# # Reset the conversation
-# if st.button("Reset Chat"):
-#     response = requests.post(RESET_URL)
-#     if response.status_code == 200:
-#         st.success("Chat history has been reset.")
-#     else:
-#         st.error("Error resetting chat history.")
+# Reset the conversation
+if st.button("Reset Chat"):
+    response = requests.post(RESET_URL)
+    if response.status_code == 200:
+        st.success("Chat history has been reset.")
+    else:
+        st.error("Error resetting chat history.")
 
