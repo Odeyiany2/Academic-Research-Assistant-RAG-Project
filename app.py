@@ -77,14 +77,14 @@ async def query_model(
     request: Request
 ):
 
-    json_content = request.json()
-    query = json_content.get("query")
-    model = query["model"]
-    temperature = query["temperature"]
+    json_content = await request.json()
+    query = json_content.get("question")
+    model = json_content.get("model", "llama-3.1-70b-versatile")  # Default model if not provided
+    temperature = json_content.get("temperature", 0.1)
 
     llm_client = ChatGroq(
-        model="llama-3.1-70b-versatile",
-        temperature=0.1,
+        model=model,
+        temperature=temperature,
         max_tokens=None,
         timeout=None,
         max_retries=2,
@@ -101,8 +101,8 @@ async def query_model(
         # Raise an error if no valid documents remain
         if not document_chunks:
             raise ValueError("No valid documents to process. All documents have empty or invalid content.")
-        vector_store = Chroma.from_documents(document_chunks, embedding_function=huggingface_embeddings, persist_directory=CHROMA_PATH)
-        chroma_retriever = vector_store.as_retriever()
+        vector_store = Chroma.from_documents(document_chunks, embedding= huggingface_embeddings, persist_directory=CHROMA_PATH)
+        #chroma_retriever = vector_store.as_retriever()
 
         # Calculate collection size
         collection_size = vector_store._collection.count()
@@ -114,25 +114,35 @@ async def query_model(
                             else 10 if collection_size>20 \
                                 else 5
 
-        # Query the model
-        response = await qa_engine(
-            query["question"], 
-            chroma_retriever,
-            llm_client, 
-            choice_k=choice_k
-                # model=model
-            )
+        # # Query the model
+        # response = await qa_engine(
+        #     query["question"], 
+        #     chroma_retriever,
+        #     llm_client, 
+        #     choice_k=choice_k
+        #         # model=model
+        #     )
+        retrievalQA = RetrievalQA.from_chain_type(
+        llm=llm,
+        chain_type="stuff",
+        retriever=vector_store.as_retriever(search_type="similarity", search_kwargs={"k": 3}),
+        return_source_documents=True,
+        chain_type_kwargs={"prompt": PROMPT}
+    )
+        result = retrievalQA.invoke({"query": query})
+        # answer = response.choices[0].message.content
             # Logging the response
-        llmresponse_logger.log(response["result"])  # Log the generated response 
-        print(response.response)
-
+        llmresponse_logger.log(result)  # Log the generated response 
+        #print(response.response)
+    
         # Evaluate the model's response
-        evaluate_model(query["question"], response["result"])
+        evaluate_model(query["question"], result)
             
-        return PlainTextResponse(content=response.response, status_code=200)
+        #return PlainTextResponse(content = result, status_code=200)
+        return JSONResponse(content={"result": result}, status_code=200)
     
     except Exception as e:
-        message = f"An error occured where {model} was trying to generate a response: {e}",
+        message = f"An error occured where {llm_client} was trying to generate a response: {e}",
         system_logger.error(
             message,
             exc_info=1

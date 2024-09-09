@@ -34,6 +34,8 @@ import streamlit as st
 import requests
 import json
 import uuid
+#from utils.models import LLMClient
+#from app import ret
 
 # Set your API endpoint URLs
 UPLOAD_URL = "http://127.0.0.1:5000/upload"
@@ -43,65 +45,73 @@ RESET_URL = "http://127.0.0.1:5000/reset"
 
 st.title("Academic Research Assistant - Business and Finance")
 
-# Sidebar for file upload
-st.sidebar.header("Upload Documents")
+# # Initialize session state for tracking user input and responses
+# if 'responses' not in st.session_state:
+#     st.session_state.responses = []
+
+# Sidebar for file upload and model selection
 project_uuid = st.sidebar.text_input("Project UUID", value=str(uuid.uuid4()))
-st.sidebar.write("If you don't have a Project UUID, one has been automatically generated for you.")
+st.sidebar.subheader("Select Model to Use")
+# Extract model names (keys) from the map_client_to_model method
+model_names = ["llama-3.1-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768"]
+selected_model = st.sidebar.selectbox(
+    "Select a Model", model_names)
+
 temperature = st.sidebar.slider("Temperature", 0.0, 1.0, 0.5)
+st.sidebar.subheader("Upload your Documents on Business or Finance")
 uploaded_files = st.sidebar.file_uploader("Choose files", accept_multiple_files=True)
 
 if st.sidebar.button("Upload"):
-    if uploaded_files and project_uuid:
+    if uploaded_files and project_uuid :
         files = [("files", (file.name, file.getvalue(), file.type)) for file in uploaded_files]
-        response = requests.post(UPLOAD_URL, data={"projectUuid": project_uuid}, files=files)
+        response = requests.post(UPLOAD_URL, data = {"projectUuid": project_uuid}, files= files) 
         st.sidebar.write(response.json())
     else:
-        st.sidebar.error("Please upload files and provide a Project UUID.")
+        st.sidebar.error("Please upload files")
 
 # Main area for querying the model
-st.header("Query the Model")
-
-model = st.selectbox("Choose the model", ["llama-3.1-70b-versatile"])
-# temperature = st.slider("Temperature", 0.0, 1.0, 0.5)
-question = st.text_area("Enter your question")
+#st.subheader("Query the model based on your uploaded document")
+user_input = st.text_input("Enter your question: ")
 
 if st.button("Submit Query"):
-    if question:
+    if user_input:
         query_payload = {
-            "model": model,
+            "model": selected_model,
             "temperature": temperature,
-            "question": question
+            "question": user_input
         }
         response = requests.post(QUERY_URL, json=query_payload)
-        # st.write(f"Response Status Code: {response.status_code}")  # Add this line to check status code
-        # st.write(f"Response Content: {response.text}") 
         if response.status_code == 200:
+            result = response.json()
             st.write("Model's Response:")
-            st.write(response.text)
+            # answer = response.choices[0].message.content
+            st.write(result)
+            #st.session_state.conversation
         else:
             st.error("Error in generating response. Please try again.")
+            st.write(f"Response Content: {response.content}")
     else:
         st.error("Please enter a question.")
 
-# Chat with the Assistant
-st.header("Chat with the Assistant")
+# # Chat with the Assistant
+# st.header("Chat with the Assistant")
 
-user_input = st.text_input("You:")
+# user_input = st.text_input("You:")
 
-if st.button("Send"):
-    if user_input:
-        response = requests.post(CHAT_URL, json={"user_input": user_input})
-        if response.status_code == 200:
-            chat_response = response.json()
-            st.write("Assistant:")
-            st.write(chat_response["response"])
-            if chat_response["source_documents"]:
-                st.write("Source Documents:")
-                st.json(chat_response["source_documents"])
-        else:
-            st.error("Error during chat. Please try again.")
-    else:
-        st.error("Please enter a message.")
+# if st.button("Send"):
+#     if user_input:
+#         response = requests.post(CHAT_URL, json={"user_input": user_input})
+#         if response.status_code == 200:
+#             chat_response = response.json()
+#             st.write("Assistant:")
+#             st.write(chat_response["response"])
+#             if chat_response["source_documents"]:
+#                 st.write("Source Documents:")
+#                 st.json(chat_response["source_documents"])
+#         else:
+#             st.error("Error during chat. Please try again.")
+#     else:
+#         st.error("Please enter a message.")
 
 # Reset the conversation
 if st.button("Reset Chat"):
