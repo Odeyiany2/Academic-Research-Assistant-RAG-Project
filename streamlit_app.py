@@ -94,8 +94,9 @@ if st.button("Submit Query"):
                     st.write(result)
                 except ValueError:
                     # If JSON decoding fails, print the raw content for debugging
-                    st.error("Failed to decode JSON response")
-                    st.write(f"Raw response content: {response.text}")
+                    #st.error("Failed to decode JSON response")
+                    st.write("Model's Response:")
+                    st.write(response.text)
             else:
                 st.error(f"Error: Received status code {response.status_code}")
                 st.write(f"Response content: {response.text}")

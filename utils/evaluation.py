@@ -1,34 +1,33 @@
-from deepeval import evaluate
-from deepeval.test_case import LLMTestCase
-from deepeval.metrics import AnswerRelevancyMetric
 from src.exceptions.operationshandler import *
-from utils.helpers import *
-#from app import query_model
+import requests
+# Assuming you have a list of queries and their expected answers
+test_queries = [
+    {"query": "What is contract law and it's importance in business?", "expected_answer": "Contract law is the body of law governing the creation and enforcement of contracts."},
+    {"query": "What is contract law and it's importance in business?", "expected_answer": "Contract law is at the centre of most human activities, governing the relationships and agreements formed between individuals and businesses. It provides a framework for understanding and navigating contractual relationships, ensuring that parties fulfill their obligations and responsibilities. The law of contract is essential in business as it provides a basis for trade and commerce, allowing companies to engage in transactions and partnerships with confidence. By establishing clear rules and guidelines, contract law promotes trust, stability, and predictability in business dealings. Ultimately, contract law plays a vital role in facilitating economic growth and development by enabling businesses to operate effectively and efficiently."}
+]
 
+# Function to get model's response (this is a placeholder, replace with your actual function)
+def get_model_response(query, model_name):
+    response = requests.post("http://127.0.0.1:5000/query", json={"question": query, "model": model_name})
+    if response.status_code == 200:
+        return response.json().get("result", "")
+    else:
+        raise Exception(f"Model request failed with status code {response.status_code}")
+def evaluate_model_response(query, model_name):
+    correct_answers = 0
+    total_queries = len(test_queries)
 
-def evaluate_model(query, model_response):
-    try:
-        actual_output = model_response
+    for item in test_queries:
+        query = item["query"]
+        expected_answer = item["expected_answer"]
+        try:
+            model_response = get_model_response(query, model_name)
+            
+            if model_response in expected_answer:
+                correct_answers += 1
+        except Exception as e:
+            evaluation_logger.log(f"Error while evaluating query '{query}': {e}")
 
-        metric = AnswerRelevancyMetric(
-            threshold=0.7,
-            model="llama-3.1-70b-versatile",
-            include_reason=True
-        )
-
-        test_case = LLMTestCase(
-            input=query,
-            actual_output=actual_output
-        )
-
-        # Evaluate and get results
-        evaluation_result = metric.measure(test_case)
-
-        # Log the evaluation results
-        evaluation_logger.info(f"Evaluation for query: {query}")
-        evaluation_logger.info(f"Score: {evaluation_result.score}")
-        evaluation_logger.info(f"Reason: {evaluation_result.reason}")
-
-    except Exception as e:
-        evaluation_logger.error(f"Error during evaluation: {str(e)}")
-        raise QueryEngineError("Failed to evaluate model.") from e
+    # Calculate accuracy
+    accuracy = (correct_answers / total_queries) * 100
+    evaluation_logger.log(f"Accuracy of the {model_name} is: {accuracy}")
