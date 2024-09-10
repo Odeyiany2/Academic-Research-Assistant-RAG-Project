@@ -58,6 +58,8 @@ Follow the steps below to run the codes locally and replicate the results.
 **Note: Ensure to create a file to store your API keys and access them.**
 
 ## 🚀 Future Considerations to Build a more Robust RAG
-- Training with more files to help the LLM. 
-- Possibility of expanding the number of courses.
+- Training with more large files to help the LLM
+- Ensuring the RAG can take larger files from users and efficiently summarize important details. 
+- Possibility of expanding the number of courses
 - Getting access to more LLMS as the last two on the Model section to get better comparisons on how different models perform.
+  
