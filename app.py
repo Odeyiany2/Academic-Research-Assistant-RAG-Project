@@ -91,7 +91,7 @@ async def query_model(
             max_retries=2,
         ) 
         retrievalQA = RetrievalQA.from_chain_type(
-        llm=llm,
+        llm=llm_client,
         chain_type="stuff",
         retriever=vector_store.as_retriever(search_type="similarity", search_kwargs={"k": 3}),
         return_source_documents=True,
@@ -99,18 +99,14 @@ async def query_model(
     )
         result = retrievalQA.invoke({"query": query})
         # Logging the response
-        llmresponse_logger.log(result)  # Log the generated response 
+        llmresponse_logger.log(logging.INFO, result["result"])  # Log the generated response 
     
-        # Evaluate the model's response
-        evaluate_model(query, result)
+        # # Evaluate the model's response
+        # metric = CustomAnswerRelevancyMetric(model)
+        # evaluation_logger.log(logging.INFO, metric.evaluate(result))
+        # #evaluate_model(query, result)
         
-        # Prepare the result for the response
-        response_data = {
-            "answer": result["result"],  # Assuming you want the answer part
-            "sources": result.get("source_documents", [])
-        }
-        #return PlainTextResponse(content = result, status_code=200)
-        return JSONResponse(content=response_data, status_code=200)
+        return PlainTextResponse(content=result["result"], status_code=200)
     
     except Exception as e:
         message = f"An error occured where {llm_client} was trying to generate a response: {e}",

@@ -100,13 +100,15 @@ class LLMClient(BaseModel):
             "llama-3.1-70b-versatile": self.groq,
             "llama-3.1-8b-instant": self.groq,
             "mixtral-8x7b-32768": self.groq,
-            "claude-3-5-sonnet@20240620": self.anthropic,
-            "claude-3-haiku@20240307": self.anthropic,
-            "claude-3-3-opus@20240229": self.anthropic,
-            "gemini-1.5-flash": self.gemini,
-            "gemini-1.5-pro": self.gemini,
+            # "claude-3-5-sonnet@20240620": self.anthropic,
+            # "claude-3-haiku@20240307": self.anthropic,
+            # "claude-3-3-opus@20240229": self.anthropic,
+            # "gemini-1.5-flash": self.gemini,
+            # "gemini-1.5-pro": self.gemini,
         }
 
         _client = model_mapping.get(model)
 
         return _client(model)
+    
+    

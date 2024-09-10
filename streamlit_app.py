@@ -43,17 +43,18 @@ QUERY_URL = "http://127.0.0.1:5000/query"
 CHAT_URL = "http://127.0.0.1:5000/chat"
 RESET_URL = "http://127.0.0.1:5000/reset"
 
-st.title("Academic Research Assistant - Business and Finance")
+st.title("📚 Academic Research Assistant - Business and Finance")
 
 # # Initialize session state for tracking user input and responses
 # if 'responses' not in st.session_state:
 #     st.session_state.responses = []
 
 # Sidebar for file upload and model selection
+st.sidebar.header(" ✨ Necessary Inputs")
 project_uuid = st.sidebar.text_input("Project UUID", value=str(uuid.uuid4()))
 st.sidebar.subheader("Select Model to Use")
 # Extract model names (keys) from the map_client_to_model method
-model_names = ["llama-3.1-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768"]
+model_names = ["llama-3.1-70b-versatile", "llama-3.1-8b-instant"]
 selected_model = st.sidebar.selectbox(
     "Select a Model", model_names)
 
@@ -74,24 +75,32 @@ if st.sidebar.button("Upload"):
 user_input = st.text_input("Enter your question: ")
 
 if st.button("Submit Query"):
-    if user_input:
+    if uploaded_files and user_input:
         query_payload = {
             "model": selected_model,
             "temperature": temperature,
-            "question": user_input
+            "question": user_input,
+            "projectUuid": project_uuid
         }
-        response = requests.post(QUERY_URL, json=query_payload)
+        try:
+            response = requests.post(QUERY_URL, json=query_payload)
 
-        if response.status_code == 200:
-            result = response.json()
-            st.write("Model's Response:")   
-            st.write(result)
-                
-        else:
-            st.error("Error in generating response. Please try again.")
-            st.write(f"Response Content: {response.content}")
-    else:
-        st.error("Please enter a question.")
+            # Check if the request was successful
+            if response.status_code == 200:
+                try:
+                    # Try to parse the JSON response
+                    result = response.json()
+                    st.write("Model's Response:")
+                    st.write(result)
+                except ValueError:
+                    # If JSON decoding fails, print the raw content for debugging
+                    st.error("Failed to decode JSON response")
+                    st.write(f"Raw response content: {response.text}")
+            else:
+                st.error(f"Error: Received status code {response.status_code}")
+                st.write(f"Response content: {response.text}")
+        except requests.exceptions.RequestException as e:
+            st.error(f"An error occurred: {e}")
 
 
 # Reset the conversation
