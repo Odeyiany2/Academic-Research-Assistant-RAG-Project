@@ -1,12 +1,12 @@
-# RAG Project: Academic Research Assistant ( Business and Finance )
+# RAG Project: 📚 Academic Research Assistant ( Business and Finance )
 
 ## 1. Objective
 As a penultimate student who is studying Accounting, the use case for my RAG chatbot will be based on Business and Finance. The goal is to build a simple RAG chatbot that takes in documents talking about business and finance via file upload, generates embeddings of the documents, stores the embeddings in a vector store, and retrieves relevant embeddings to answer the user's query. 
 
 ## 2. Implementation Components
-* FastAPI: Serves as the backend for the application, handling file uploads, query processing, and interacting with LangChain and MongoDB.
+* FastAPI: Serves as the backend for the application, handling file uploads, query processing, and interacting with LangChain and ChromaDB.
 
-* LangChain: generate embeddings for the doument and process user queries
+* LangChain and Hugging Face Emeddings: generate embeddings for the doument and process user queries
   
 * ChromaDB: store the generated embeddings in vector store
 
@@ -22,7 +22,7 @@ As a penultimate student who is studying Accounting, the use case for my RAG cha
     - `claude-3-opus@20240229`
     - `claude-3-5-sonnet@20240620`
 
-## To Run Locally
+## To Run Locally 👩🏽‍💻
 Follow the steps below to run the codes locally and replicate the results. 
 - Clone the repo to your local machine
    - VS code: use the link below to clone on vs code
@@ -57,7 +57,7 @@ Follow the steps below to run the codes locally and replicate the results.
 
 **Note: Ensure to create a file to store your API keys and access them.**
 
-## Future Considerations to Build a more Robust RAG
+## 🚀 Future Considerations to Build a more Robust RAG
 - Training with more files to help the LLM. 
 - Possibility of expanding the number of courses.
 - Getting access to more LLMS as the last two on the Model section to get better comparisons on how different models perform.
