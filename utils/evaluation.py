@@ -1,5 +1,17 @@
-from src.exceptions.operationshandler import *
+#from src.exceptions.operationshandler import evaluation_logger
 import requests
+import logging 
+
+# Set up logging for evaluation
+eval_log_filename = "evals.log"
+eval_logger = logging.getLogger("eval_logger")
+eval_logger.setLevel(logging.INFO)
+eval_handler = logging.FileHandler(eval_log_filename)
+eval_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
+eval_logger.addHandler(eval_handler)
+
+
+
 # Assuming you have a list of queries and their expected answers
 test_queries = [
     {"query": "What is contract law and it's importance in business?", "expected_answer": "Contract law is the body of law governing the creation and enforcement of contracts."},
@@ -26,8 +38,8 @@ def evaluate_model_response(query, model_name):
             if model_response in expected_answer:
                 correct_answers += 1
         except Exception as e:
-            evaluation_logger.log(f"Error while evaluating query '{query}': {e}")
+            eval_logger.error(f"Error while evaluating query '{query}': {e}")
 
     # Calculate accuracy
     accuracy = (correct_answers / total_queries) * 100
-    evaluation_logger.log(f"Accuracy of the {model_name} is: {accuracy}")
+    eval_logger.info(f"Accuracy of the {model_name} is: {accuracy}")
