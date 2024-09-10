@@ -1,7 +1,7 @@
 # RAG Project: 📚 Academic Research Assistant ( Business and Finance )
 
 ## 1. Objective
-As a penultimate student who is studying Accounting, the use case for my RAG chatbot will be based on Business and Finance. The goal is to build a simple RAG chatbot that takes in documents talking about business and finance via file upload, generates embeddings of the documents, stores the embeddings in a vector store, and retrieves relevant embeddings to answer the user's query. 
+As a penultimate student who is studying Accounting, the use case for my RAG chatbot will be based on Business and Finance. The goal is to build a simple RAG chatbot that takes in documents talking about business and finance via file upload, generates embeddings of the documents, stores the embeddings in a vector store, and retrieves relevant embeddings to answer the user's query. As a student I have had to read very large files for my courses and most times I find it difficult and time consuming to get answers from the files. With the chatbot access to answers will be easier, faster and more efficient. 
 
 ## 2. Implementation Components
 * FastAPI: Serves as the backend for the application, handling file uploads, query processing, and interacting with LangChain and ChromaDB.
@@ -58,6 +58,13 @@ Follow the steps below to run the codes locally and replicate the results.
 **Note: Ensure to create a file to store your API keys and access them.**
 
 ## 🚀 Future Considerations to Build a more Robust RAG
-- Training with more files to help the LLM. 
-- Possibility of expanding the number of courses.
+- Training with more large files to help the LLM
+- Ensuring the RAG can take larger files from users and efficiently summarize important details. 
+- Possibility of expanding the number of courses
 - Getting access to more LLMS as the last two on the Model section to get better comparisons on how different models perform.
+  
+  
+### Streamlit Demo Video
+https://github.com/user-attachments/assets/4f8720e8-b2ba-40e3-95ad-2ad3de958da5
+
+
