@@ -35,7 +35,7 @@ import requests
 import json
 import uuid
 #from utils.models import LLMClient
-#from app import ret
+from app import *
 
 # Set your API endpoint URLs
 UPLOAD_URL = "http://127.0.0.1:5000/upload"
@@ -81,37 +81,18 @@ if st.button("Submit Query"):
             "question": user_input
         }
         response = requests.post(QUERY_URL, json=query_payload)
+
         if response.status_code == 200:
             result = response.json()
-            st.write("Model's Response:")
-            # answer = response.choices[0].message.content
+            st.write("Model's Response:")   
             st.write(result)
-            #st.session_state.conversation
+                
         else:
             st.error("Error in generating response. Please try again.")
             st.write(f"Response Content: {response.content}")
     else:
         st.error("Please enter a question.")
 
-# # Chat with the Assistant
-# st.header("Chat with the Assistant")
-
-# user_input = st.text_input("You:")
-
-# if st.button("Send"):
-#     if user_input:
-#         response = requests.post(CHAT_URL, json={"user_input": user_input})
-#         if response.status_code == 200:
-#             chat_response = response.json()
-#             st.write("Assistant:")
-#             st.write(chat_response["response"])
-#             if chat_response["source_documents"]:
-#                 st.write("Source Documents:")
-#                 st.json(chat_response["source_documents"])
-#         else:
-#             st.error("Error during chat. Please try again.")
-#     else:
-#         st.error("Please enter a message.")
 
 # Reset the conversation
 if st.button("Reset Chat"):

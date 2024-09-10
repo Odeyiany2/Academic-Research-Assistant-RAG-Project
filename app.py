@@ -76,52 +76,20 @@ async def upload_documents(
 async def query_model(
     request: Request
 ):
+    try:
+        json_content = await request.json()
+        query = json_content.get("question")
+        model = json_content.get("model", "llama-3.1-70b-versatile")  # Default model if not provided
+        temperature = json_content.get("temperature", 0.1)
+        vector_store = Chroma(embedding_function=huggingface_embeddings, persist_directory=CHROMA_PATH)
 
-    json_content = await request.json()
-    query = json_content.get("question")
-    model = json_content.get("model", "llama-3.1-70b-versatile")  # Default model if not provided
-    temperature = json_content.get("temperature", 0.1)
-
-    llm_client = ChatGroq(
-        model=model,
-        temperature=temperature,
-        max_tokens=None,
-        timeout=None,
-        max_retries=2,
-    )
-    try: 
-        # Initialize ChromaDB
-        # Load ChromaDB
-        # Process documents and split them into chunks
-        document_chunks = text_splitter.split_documents(document_processing(dir="temp_docs"))
-        
-        # Filter documents that have non-empty content
-        document_chunks = [doc for doc in document_chunks if doc.page_content and doc.page_content.strip()]
-        
-        # Raise an error if no valid documents remain
-        if not document_chunks:
-            raise ValueError("No valid documents to process. All documents have empty or invalid content.")
-        vector_store = Chroma.from_documents(document_chunks, embedding= huggingface_embeddings, persist_directory=CHROMA_PATH)
-        #chroma_retriever = vector_store.as_retriever()
-
-        # Calculate collection size
-        collection_size = vector_store._collection.count()
-        print(f"Retrieved collection size: {collection_size}...")
-
-        # experiment with choice_k to find something optimal
-        choice_k = 40 if collection_size>150 \
-                        else 15 if collection_size>50 \
-                            else 10 if collection_size>20 \
-                                else 5
-
-        # # Query the model
-        # response = await qa_engine(
-        #     query["question"], 
-        #     chroma_retriever,
-        #     llm_client, 
-        #     choice_k=choice_k
-        #         # model=model
-        #     )
+        llm_client = ChatGroq(
+            model=model,
+            temperature=temperature,
+            max_tokens=None,
+            timeout=None,
+            max_retries=2,
+        ) 
         retrievalQA = RetrievalQA.from_chain_type(
         llm=llm,
         chain_type="stuff",
@@ -130,16 +98,19 @@ async def query_model(
         chain_type_kwargs={"prompt": PROMPT}
     )
         result = retrievalQA.invoke({"query": query})
-        # answer = response.choices[0].message.content
-            # Logging the response
+        # Logging the response
         llmresponse_logger.log(result)  # Log the generated response 
-        #print(response.response)
     
         # Evaluate the model's response
-        evaluate_model(query["question"], result)
-            
+        evaluate_model(query, result)
+        
+        # Prepare the result for the response
+        response_data = {
+            "answer": result["result"],  # Assuming you want the answer part
+            "sources": result.get("source_documents", [])
+        }
         #return PlainTextResponse(content = result, status_code=200)
-        return JSONResponse(content={"result": result}, status_code=200)
+        return JSONResponse(content=response_data, status_code=200)
     
     except Exception as e:
         message = f"An error occured where {llm_client} was trying to generate a response: {e}",
