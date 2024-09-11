@@ -19,13 +19,13 @@ test_queries = [
 ]
 
 # Function to get model's response (this is a placeholder, replace with your actual function)
-def get_model_response(query, model_name):
-    response = requests.post("http://127.0.0.1:5000/query", json={"question": query, "model": model_name})
-    if response.status_code == 200:
-        return response.json().get("result", "")
-    else:
-        raise Exception(f"Model request failed with status code {response.status_code}")
-def evaluate_model_response(query, model_name):
+# def get_model_response(query, model_name):
+#     response = requests.post("http://127.0.0.1:5000/query", json={"question": query, "model": model_name})
+#     if response.status_code == 200:
+#         return response.json().get("result", "")
+#     else:
+#         raise Exception(f"Model request failed with status code {response.status_code}")
+def evaluate_model_response(query, model_name, result):
     correct_answers = 0
     total_queries = len(test_queries)
 
@@ -33,7 +33,7 @@ def evaluate_model_response(query, model_name):
         query = item["query"]
         expected_answer = item["expected_answer"]
         try:
-            model_response = get_model_response(query, model_name)
+            model_response = result
             
             if model_response in expected_answer:
                 correct_answers += 1
@@ -43,3 +43,5 @@ def evaluate_model_response(query, model_name):
     # Calculate accuracy
     accuracy = (correct_answers / total_queries) * 100
     eval_logger.info(f"Accuracy of the {model_name} is: {accuracy}")
+
+#evaluate_model_response(model_name="llama-3.1-70b-versatile", )

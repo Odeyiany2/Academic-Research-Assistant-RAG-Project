@@ -99,13 +99,10 @@ async def query_model(
     )
         result = retrievalQA.invoke({"query": query})
         # Logging the response
-        llmresponse_logger.log(logging.INFO, result["result"])  # Log the generated response 
+        llmresponse_logger.log(logging.INFO, result["result"])  
     
-        # # Evaluate the model's response
-        # metric = CustomAnswerRelevancyMetric(model)
-        # evaluation_logger.log(logging.INFO, metric.evaluate(result))
-        # #evaluate_model(query, result)
-        
+        # Evaluate the model's response
+        evaluate_model_response(query, model, result["result"])
         return PlainTextResponse(content=result["result"], status_code=200)
     
     except Exception as e:
