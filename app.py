@@ -7,7 +7,8 @@ from src.exceptions.operationshandler import llmresponse_logger, userops_logger,
 from main import qa_engine, Chroma, huggingface_embeddings,document_processing,text_splitter, ChatGroq, get_session_history, chat_chain
 from utils.helpers import allowed_file, QueryEngineError, system_logger, upload_files
 from main import *
-from utils.evaluation import *
+#from utils.evaluation import *
+from evaluation import *
 from dotenv import load_dotenv
 load_dotenv()
 
