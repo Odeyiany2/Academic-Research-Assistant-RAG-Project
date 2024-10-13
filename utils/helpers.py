@@ -21,7 +21,7 @@ def file_checks(files):
     # Checking  if the number of files exceeds the allowed limit
     if len(files) > MAX_FILE_UPLOAD_LIMIT:
         return {
-            "detail": f"Too many files. Maximum {MAX_FILE_UPLOAD_LIMIT} files allowed.",
+            "detail": f"Too many files. Maximum of {MAX_FILE_UPLOAD_LIMIT} files allowed.",
             "status_code": 400
         }
     

@@ -184,7 +184,7 @@ history_aware_retriever = create_history_aware_retriever(
 prompt_template = """ You are an Academic Research Assistant that helps students, lecturers and professors to properly analyze
 their questions based on documents they upload. Use the following pieces of context to answer the question at the end. Please follow the following rules:
 1. If you don't know the answer from the provided document, don't try to make up an answer. Just say "I can't find the final answer but you may want to check the following links".
-2. If you find the answer, write the answer in a concise way with five sentences maximum.
+2. If you find the answer, write the answer in a concise way. 
 
 {context}
 
